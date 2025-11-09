@@ -52,7 +52,7 @@
 
         .cards-container {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: 1fr;
             gap: 12px;
             margin-bottom: 8px;
         }
@@ -216,6 +216,39 @@
             font-size: 0.7rem;
         }
 
+        .tool-links {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tool-download {
+            display: inline-flex;
+            align-items: center;
+            color: #10b981;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s ease;
+            font-size: 0.7rem;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 3px 6px;
+            border-radius: 8px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .tool-download:hover {
+            color: #059669;
+            background: rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.5);
+        }
+
+        .tool-download::before {
+            content: '⬇';
+            margin-right: 3px;
+        }
+
         .tool-link {
             display: inline-flex;
             align-items: center;
@@ -233,6 +266,25 @@
         .tool-link::after {
             content: '→';
             margin-left: 3px;
+        }
+
+        .tool-download {
+            display: inline-flex;
+            align-items: center;
+            color: #10b981;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s ease;
+            font-size: 0.7rem;
+        }
+
+        .tool-download:hover {
+            color: #059669;
+        }
+
+        .tool-download::before {
+            content: '⬇';
+            margin-right: 3px;
         }
 
         .empty-state {
@@ -262,28 +314,28 @@
             100% { opacity: 1; }
         }
 
-        .controls {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .control-btn {
+        .toggle-all-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
             background: rgba(255, 255, 255, 0.2);
             color: white;
             border: 1px solid white;
-            padding: 6px 12px;
-            margin: 0 5px;
-            border-radius: 15px;
+            padding: 8px 16px;
+            border-radius: 20px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
             backdrop-filter: blur(5px);
-            font-size: 0.75rem;
+            font-size: 0.8rem;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-        .control-btn:hover {
+        .toggle-all-btn:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
         }
 
         footer {
@@ -294,16 +346,8 @@
             font-size: 0.65rem;
         }
 
-        @media (max-width: 1200px) {
-            .cards-container {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-            }
-        }
-
         @media (max-width: 768px) {
             .cards-container {
-                grid-template-columns: 1fr;
                 gap: 10px;
             }
 
@@ -333,11 +377,12 @@
                 font-size: 1rem;
             }
 
-            .control-btn {
-                margin: 2px;
-                font-size: 0.7rem;
-                padding: 5px 10px;
-            }
+        .toggle-all-btn {
+            top: 15px;
+            right: 15px;
+            padding: 6px 12px;
+            font-size: 0.7rem;
+        }
 
             .period-content {
                 padding: 12px;
@@ -367,15 +412,12 @@
     </style>
 </head>
 <body>
+    <button class="toggle-all-btn" onclick="toggleAll()" id="toggleAllBtn">Expand All</button>
+
     <div class="container">
         <header>
             <h1>🗺️ GeoSyd</h1>
         </header>
-
-        <div class="controls">
-            <button class="control-btn" onclick="expandAll()">Expand All</button>
-            <button class="control-btn" onclick="collapseAll()">Collapse All</button>
-        </div>
 
         <div class="cards-container">
             <!-- 2041-2050 Period Card -->
@@ -430,13 +472,17 @@
                             <p class="tool-description">
                                 Frontend uploading helper utility for geospatial data processing.
                             </p>
-                            <a href="https://github.com/geosyd/naksha_fe" target="_blank" class="tool-link">
-                                View on GitHub
-                            </a>
+                            <div class="tool-links">
+                                <a href="https://github.com/geosyd/naksha_fe" target="_blank" class="tool-link">
+                                    View on GitHub
+                                </a>
+                                <a href="https://github.com/geosyd/naksha_fe/archive/refs/heads/main.zip" target="_blank" class="tool-download">
+                                    Download
+                                </a>
+                            </div>
                         </div>
                         <div class="tool-card">
                             <h3 class="tool-name">geo_mapper</h3>
-                            <div class="tool-date">December 2025</div>
                             <span class="tool-type">MAPPING TOOL</span>
                             <p class="tool-description">
                                 Interactive mapping tool for visualization and spatial analysis.
@@ -447,7 +493,6 @@
                         </div>
                         <div class="tool-card">
                             <h3 class="tool-name">data_sync</h3>
-                            <div class="tool-date">January 2026</div>
                             <span class="tool-type">SYNC UTILITY</span>
                             <p class="tool-description">
                                 Automated synchronization for geospatial datasets across platforms.
@@ -483,32 +528,41 @@
             }
         }
 
-        function expandAll() {
+        let allExpanded = false;
+
+        function toggleAll() {
+            const toggleBtn = document.getElementById('toggleAllBtn');
             const periods = ['2041-2050', '2031-2040', '2021-2030'];
-            periods.forEach(period => {
-                const section = document.getElementById(`period-${period}`);
-                const content = document.getElementById(`content-${period}`);
-                const toggle = document.getElementById(`toggle-${period}`);
 
-                section.classList.remove('collapsed');
-                content.classList.add('expanded');
-                toggle.classList.remove('collapsed');
-                toggle.textContent = '−';
-            });
-        }
+            if (allExpanded) {
+                // Collapse all
+                periods.forEach(period => {
+                    const section = document.getElementById(`period-${period}`);
+                    const content = document.getElementById(`content-${period}`);
+                    const toggle = document.getElementById(`toggle-${period}`);
 
-        function collapseAll() {
-            const periods = ['2041-2050', '2031-2040', '2021-2030'];
-            periods.forEach(period => {
-                const section = document.getElementById(`period-${period}`);
-                const content = document.getElementById(`content-${period}`);
-                const toggle = document.getElementById(`toggle-${period}`);
+                    section.classList.add('collapsed');
+                    content.classList.remove('expanded');
+                    toggle.classList.add('collapsed');
+                    toggle.textContent = '+';
+                });
+                toggleBtn.textContent = 'Expand All';
+                allExpanded = false;
+            } else {
+                // Expand all
+                periods.forEach(period => {
+                    const section = document.getElementById(`period-${period}`);
+                    const content = document.getElementById(`content-${period}`);
+                    const toggle = document.getElementById(`toggle-${period}`);
 
-                section.classList.add('collapsed');
-                content.classList.remove('expanded');
-                toggle.classList.add('collapsed');
-                toggle.textContent = '+';
-            });
+                    section.classList.remove('collapsed');
+                    content.classList.add('expanded');
+                    toggle.classList.remove('collapsed');
+                    toggle.textContent = '−';
+                });
+                toggleBtn.textContent = 'Collapse All';
+                allExpanded = true;
+            }
         }
 
         // Initialize with current period (2021-2030) expanded
