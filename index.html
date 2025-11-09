@@ -1,1 +1,525 @@
-geosyd
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoSyd</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.4;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 5px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin-top: 0;
+        }
+
+        header {
+            text-align: center;
+            padding: 8px 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            color: white;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 2px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .period-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .period-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .period-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-bottom: 2px solid #667eea;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.3s ease;
+        }
+
+        .period-header:hover {
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        }
+
+        .collapse-toggle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .collapse-toggle:hover {
+            background: linear-gradient(135deg, #5a67d8, #6b46c1);
+            transform: scale(1.1);
+        }
+
+        .collapse-toggle.collapsed {
+            transform: rotate(180deg);
+        }
+
+        .period-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+        }
+
+        .period-title {
+            font-size: 1.1rem;
+            color: #333;
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .period-status {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .status-current {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-future {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .period-content {
+            padding: 15px;
+            max-height: 0;
+            opacity: 0;
+            transition: all 0.4s ease;
+            overflow: hidden;
+            background: white;
+        }
+
+        .period-content.expanded {
+            max-height: 400px;
+            opacity: 1;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .tool-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .tool-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.15);
+        }
+
+        .tool-name {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #1e40af;
+            margin-bottom: 3px;
+        }
+
+        .tool-date {
+            font-size: 0.6rem;
+            color: #64748b;
+            margin-bottom: 3px;
+            font-weight: 500;
+        }
+
+        .tool-type {
+            display: inline-block;
+            background: #ddd6fe;
+            color: #6b21a8;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 0.55rem;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .tool-description {
+            color: #64748b;
+            margin-bottom: 4px;
+            line-height: 1.2;
+            font-size: 0.7rem;
+        }
+
+        .tool-link {
+            display: inline-flex;
+            align-items: center;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s ease;
+            font-size: 0.7rem;
+        }
+
+        .tool-link:hover {
+            color: #764ba2;
+        }
+
+        .tool-link::after {
+            content: '→';
+            margin-left: 3px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 15px;
+            color: #94a3b8;
+            font-style: italic;
+            font-size: 0.8rem;
+        }
+
+        .latest-badge {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: #ef4444;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 0.5rem;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid white;
+            padding: 6px 12px;
+            margin: 0 5px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            font-size: 0.75rem;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        footer {
+            text-align: center;
+            padding: 8px 0;
+            color: white;
+            margin-top: 8px;
+            font-size: 0.65rem;
+        }
+
+        @media (max-width: 1200px) {
+            .cards-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .cards-container {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            header p {
+                font-size: 0.8rem;
+            }
+
+            .period-header {
+                padding: 10px 12px;
+            }
+
+            .collapse-toggle {
+                width: 20px;
+                height: 20px;
+                font-size: 12px;
+            }
+
+            .period-badge {
+                font-size: 0.65rem;
+            }
+
+            .period-title {
+                font-size: 1rem;
+            }
+
+            .control-btn {
+                margin: 2px;
+                font-size: 0.7rem;
+                padding: 5px 10px;
+            }
+
+            .period-content {
+                padding: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .period-header {
+                flex-wrap: wrap;
+            }
+
+            .collapse-toggle {
+                position: absolute;
+                right: 10px;
+                top: 10px;
+            }
+
+            .period-title {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+
+            .period-badge {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🗺️ GeoSyd</h1>
+        </header>
+
+        <div class="controls">
+            <button class="control-btn" onclick="expandAll()">Expand All</button>
+            <button class="control-btn" onclick="collapseAll()">Collapse All</button>
+        </div>
+
+        <div class="cards-container">
+            <!-- 2041-2050 Period Card -->
+            <div class="period-card" id="period-2041-2050">
+                <div class="period-header" onclick="toggleSection('2041-2050')">
+                    <button class="collapse-toggle collapsed" id="toggle-2041-2050">+</button>
+                    <span class="period-badge">2041-2050</span>
+                    <h2 class="period-title">Strategic Horizon</h2>
+                    <span class="period-status status-future">PLANNED</span>
+                </div>
+                <div class="period-content" id="content-2041-2050">
+                    <div class="tools-grid">
+                        <div class="empty-state">
+                            <p>Next-generation geospatial technologies & quantum computing applications</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2031-2040 Period Card -->
+            <div class="period-card" id="period-2031-2040">
+                <div class="period-header" onclick="toggleSection('2031-2040')">
+                    <button class="collapse-toggle collapsed" id="toggle-2031-2040">+</button>
+                    <span class="period-badge">2031-2040</span>
+                    <h2 class="period-title">Advanced Development</h2>
+                    <span class="period-status status-future">PLANNED</span>
+                </div>
+                <div class="period-content" id="content-2031-2040">
+                    <div class="tools-grid">
+                        <div class="empty-state">
+                            <p>Advanced analytics, AI integration, real-time processing & IoT</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2021-2030 Period Card -->
+            <div class="period-card" id="period-2021-2030">
+                <div class="period-header" onclick="toggleSection('2021-2030')">
+                    <button class="collapse-toggle collapsed" id="toggle-2021-2030">+</button>
+                    <span class="period-badge">2021-2030</span>
+                    <h2 class="period-title">Current Development</h2>
+                    <span class="period-status status-current">ACTIVE</span>
+                </div>
+                <div class="period-content" id="content-2021-2030">
+                    <div class="tools-grid">
+                        <div class="tool-card">
+                            <span class="latest-badge">LATEST</span>
+                            <h3 class="tool-name">naksha_fe</h3>
+                            <div class="tool-date">November 2025</div>
+                            <span class="tool-type">GEOSPATIAL TOOL</span>
+                            <p class="tool-description">
+                                Frontend uploading helper utility for geospatial data processing.
+                            </p>
+                            <a href="https://github.com/geosyd/naksha_fe" target="_blank" class="tool-link">
+                                View on GitHub
+                            </a>
+                        </div>
+                        <div class="tool-card">
+                            <h3 class="tool-name">geo_mapper</h3>
+                            <div class="tool-date">December 2025</div>
+                            <span class="tool-type">MAPPING TOOL</span>
+                            <p class="tool-description">
+                                Interactive mapping tool for visualization and spatial analysis.
+                            </p>
+                            <a href="#" target="_blank" class="tool-link">
+                                Coming Soon
+                            </a>
+                        </div>
+                        <div class="tool-card">
+                            <h3 class="tool-name">data_sync</h3>
+                            <div class="tool-date">January 2026</div>
+                            <span class="tool-type">SYNC UTILITY</span>
+                            <p class="tool-description">
+                                Automated synchronization for geospatial datasets across platforms.
+                            </p>
+                            <a href="#" target="_blank" class="tool-link">
+                                Coming Soon
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 GeoSyd</p>
+        </footer>
+    </div>
+
+    <script>
+        function toggleSection(period) {
+            const section = document.getElementById(`period-${period}`);
+            const content = document.getElementById(`content-${period}`);
+            const toggle = document.getElementById(`toggle-${period}`);
+
+            section.classList.toggle('collapsed');
+            content.classList.toggle('expanded');
+            toggle.classList.toggle('collapsed');
+
+            if (toggle.classList.contains('collapsed')) {
+                toggle.textContent = '+';
+            } else {
+                toggle.textContent = '−';
+            }
+        }
+
+        function expandAll() {
+            const periods = ['2041-2050', '2031-2040', '2021-2030'];
+            periods.forEach(period => {
+                const section = document.getElementById(`period-${period}`);
+                const content = document.getElementById(`content-${period}`);
+                const toggle = document.getElementById(`toggle-${period}`);
+
+                section.classList.remove('collapsed');
+                content.classList.add('expanded');
+                toggle.classList.remove('collapsed');
+                toggle.textContent = '−';
+            });
+        }
+
+        function collapseAll() {
+            const periods = ['2041-2050', '2031-2040', '2021-2030'];
+            periods.forEach(period => {
+                const section = document.getElementById(`period-${period}`);
+                const content = document.getElementById(`content-${period}`);
+                const toggle = document.getElementById(`toggle-${period}`);
+
+                section.classList.add('collapsed');
+                content.classList.remove('expanded');
+                toggle.classList.add('collapsed');
+                toggle.textContent = '+';
+            });
+        }
+
+        // Initialize with current period (2021-2030) expanded
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentContent = document.getElementById('content-2021-2030');
+            const currentToggle = document.getElementById('toggle-2021-2030');
+
+            currentContent.classList.add('expanded');
+            currentToggle.textContent = '−';
+            currentToggle.classList.remove('collapsed');
+        });
+    </script>
+</body>
+</html>
